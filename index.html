@@ -277,7 +277,14 @@
          ],caption:'El mango gigante, testigo de la hazana del 98',footer:'El mango sigue ahi. Roberto todavia no ha probado los de la rama mas alta.'}
     ];
 
-    function migrate(m){if(m.blocks)return m;var b=[];if(m.imgType&&m.imgData)b.push({type:'image',imgType:m.imgType,imgData:m.imgData});if(m.text)b.push({type:'text',html:m.text});delete m.imgType;delete m.imgData;delete m.text;m.blocks=b||[{type:'text',html:'<p>Sin texto.</p>'}];return m;}
+    function migrate(m){
+        if(m.titulo!==undefined){m.title=m.titulo;delete m.titulo;}
+        if(m.ubicacion!==undefined){m.location=m.ubicacion;delete m.ubicacion;}
+        if(m.fecha!==undefined){var fp=m.fecha.split(/\s*[—–\-]\s*/);if(fp.length>=2&&!isNaN(parseInt(fp[0]))){m.year=parseInt(fp[0]);m.season=fp.slice(1).join(' — ');}else{m.season=m.fecha;if(!m.year)m.year=0;}delete m.fecha;}
+        if(m.contenido!==undefined){m.blocks=m.contenido;delete m.contenido;}
+        if(m.blocks){m.blocks.forEach(function(b){if(b.type==='image'&&b.url&&!b.imgData){b.imgData=b.url;b.imgType='url';delete b.url;}});return m;}
+        var b=[];if(m.imgType&&m.imgData)b.push({type:'image',imgType:m.imgType,imgData:m.imgData});if(m.text)b.push({type:'text',html:m.text});delete m.imgType;delete m.imgData;delete m.text;m.blocks=b||[{type:'text',html:'<p>Sin texto.</p>'}];return m;
+    }
 
     /* ===== CARGA: localStorage primero, luego memorias.json si existe ===== */
    function load(){
