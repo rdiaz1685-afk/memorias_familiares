@@ -257,25 +257,11 @@
     <div class="toast" id="toast"></div>
 
     <script>
-    var SK='memorias_fam_v6',memories=[],editId=null,openDelId=null,isVercel=false;
+    var SK='memorias_fam_v6',memories=[],editId=null,openDelId=null;
+    var isVercel=!(window.location.hostname==='localhost'||window.location.hostname==='127.0.0.1'||window.location.hostname==='');
     var lbImages=[],lbPos=0,lbFilterOn=true;
 
-    var defaults=[
-        {id:1,year:1994,season:'Verano',title:'Entre Almanaques y Enramadas',location:'Rancho San Isidro',
-         blocks:[
-            {type:'image',imgType:null,imgData:null},
-            {type:'text',html:'<p>Aquel verano de 1994 el rancho San Isidro olia a tierra mojada y a naranjas maduras que caian solas de los arboles. Yo tenia nueve anos y para mi aquel lugar era el centro del universo.</p><p>La casa grande de adobe estaba al fondo del terreno, con sus paredes gruesas que guardaban el fresco como un secreto. Mi abuela pasaba las tardes sentada en el portal, desgranando elotes con una destreza que yo intentaba imitar y nunca lograba igualar.</p><p class="dlg">\u2014Mijo, venir a ayudar o venir a comer nomas? \u2014me decia sin levantar la vista.</p>'},
-            {type:'image',imgType:null,imgData:null},
-            {type:'text',html:'<p>En el corral, los gallos pelean por las gallinas y el perro viejo dormia debajo de la enramada como si no existiera otro problema en el mundo.</p><p class="tho">Anos despues entendi que aquella simplicidad no era falta de nada, era una forma de plenitud que la ciudad nunca me permitio ver.</p><p>Las noches eran lo mejor. Nos sentabamos afuera porque adentro hacia calor, y el cielo era tan oscuro y tan lleno de estrellas que daba miedo y maravilla al mismo tiempo. Mi tio To\u00f1o tocaba la guitarra desafinada, y aunque nunca aprendio una cancion completa, <span class="emp">esas notas sueltas entre el silencio y los grillos eran la musica mas bonita que he escuchado</span>.</p>'}
-         ],caption:'El rancho San Isidro, donde el tiempo se media en sombras largas',footer:'El rancho ya no existe. Lo demolieron en 2015.'},
-        {id:2,year:1998,season:'Verano',title:'El Dia que mi Hermano Casi Se Llevo el Verano',location:'El patio trasero, bajo el mango gigante',
-         blocks:[
-            {type:'image',imgType:null,imgData:null},
-            {type:'text',html:'<p>Si existiera un premio para el hermano mas problematico de la historia familiar, mi hermano mayor, Roberto, lo ganaria sin competencia. Aquel verano de 1998 habia cumplido quince anos y estaba convencido de que podia con el mundo entero, empezando por el mango gigante del patio trasero.</p><p>El mango era una leyenda en la familia. Decian que tenia mas de sesenta anos, que sus raices llegaban hasta el pozo de la calle de al lado. Roberto decidio que necesitaba los mangos mas altos, los que supuestamente eran <span class="emp">los mas dulces porque estaban mas cerca del sol</span>.</p><p class="dlg">\u2014Mama, yo subo. No me pasa nada \u2014dijo con esa confianza suicida que solo tienen los adolescentes.</p><p>Mi madre ni siquiera levanto la vista.</p><p class="dlg">\u2014Bajate de ahi, Roberto.</p>'},
-            {type:'image',imgType:null,imgData:null},
-            {type:'text',html:'<p>Roberto subio. Y subio. Y cuando llego a la rama mas alta se quedo paralizado.</p><p class="dlg">\u2014\u00a1Mama! \u00a1No puedo bajar!</p><p>Mi abuela, con ochenta y dos anos, se sento en su mecedora con un vaso de limonada.</p><p class="dlg">\u2014Ese muchacho va a bajar solo. Tiene hambre. A esa edad, el hambre vence al miedo.</p><p>Y tenia razon. Dos horas despues, Roberto bajo del arbol <span class="emp">temblando, llorando, y con mas mangos en la camisa que los que habia logrado alcanzar arriba</span>.</p>'}
-         ],caption:'El mango gigante, testigo de la hazana del 98',footer:'El mango sigue ahi. Roberto todavia no ha probado los de la rama mas alta.'}
-    ];
+    var defaults=[];
 
     function migrate(m){
         if(m.titulo!==undefined){m.title=m.titulo;delete m.titulo;}
@@ -286,59 +272,46 @@
         var b=[];if(m.imgType&&m.imgData)b.push({type:'image',imgType:m.imgType,imgData:m.imgData});if(m.text)b.push({type:'text',html:m.text});delete m.imgType;delete m.imgData;delete m.text;m.blocks=b||[{type:'text',html:'<p>Sin texto.</p>'}];return m;
     }
 
-    /* ===== CARGA: localStorage primero, luego memorias.json si existe ===== */
-   function load(){
-    var loaded=false;
-    
-    /* Intentar cargar memorias.json desde varias rutas */
-    var paths = ['memorias.json', './memorias.json', '/memorias.json'];
-    
-    function tryLoad(idx){
-        if(idx >= paths.length){
-            /* Todas las rutas fallaron */
+    /* ===== CARGA ===== */
+    function load(){
+        /* En localhost: localStorage tiene prioridad (preserva ediciones e imágenes) */
+        if(!isVercel){
             try{
-                var d = localStorage.getItem(SK);
+                var d=localStorage.getItem(SK);
                 if(d){
-                    memories = JSON.parse(d);
-                    if(!Array.isArray(memories) || !memories.length) memories = null;
+                    var parsed=JSON.parse(d);
+                    if(Array.isArray(parsed)&&parsed.length){
+                        memories=parsed;
+                        memories.forEach(migrate);
+                        updateModeBadge();updateDPInfo();renderAll();
+                        return;
+                    }
                 }
             }catch(e){}
-            if(!memories || !memories.length){
-                memories = JSON.parse(JSON.stringify(defaults));
-                memories.forEach(migrate);
-            }
-            loaded = true;
-            isVercel = false;
-            updateModeBadge();
-            updateDPInfo();
-            renderAll();
-            return;
         }
-        
-        fetch(paths[idx], {cache: 'no-store'}).then(function(r){
-            if(!r.ok) throw new Error('HTTP ' + r.status);
-            return r.json();
-        }).then(function(data){
-            if(data && Array.isArray(data) && data.length){
-                memories = data;
+
+        /* Vercel (o localhost sin datos): cargar desde memorias.json */
+        var paths=['memorias.json','./memorias.json','/memorias.json'];
+        function tryLoad(idx){
+            if(idx>=paths.length){
+                memories=JSON.parse(JSON.stringify(defaults));
                 memories.forEach(migrate);
-                isVercel = true;
-                loaded = true;
-                updateModeBadge();
-                updateDPInfo();
-                renderAll();
-            } else {
-                /* El archivo existe pero no tiene el formato correcto */
-                tryLoad(idx + 1);
+                updateModeBadge();updateDPInfo();renderAll();
+                return;
             }
-        }).catch(function(){
-            /* Este fetch falló, intentar siguiente ruta */
-            tryLoad(idx + 1);
-        });
+            fetch(paths[idx],{cache:'no-store'}).then(function(r){
+                if(!r.ok)throw new Error('HTTP '+r.status);
+                return r.json();
+            }).then(function(data){
+                if(data&&Array.isArray(data)&&data.length){
+                    memories=data;
+                    memories.forEach(migrate);
+                    updateModeBadge();updateDPInfo();renderAll();
+                }else{tryLoad(idx+1);}
+            }).catch(function(){tryLoad(idx+1);});
+        }
+        tryLoad(0);
     }
-    
-    tryLoad(0);
-}
 
     function save(){if(isVercel)return;try{localStorage.setItem(SK,JSON.stringify(memories));}catch(e){showToast('Almacenamiento lleno. Exporta tus memorias como respaldo.');}}
 
