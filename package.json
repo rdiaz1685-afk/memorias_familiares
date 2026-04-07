@@ -1,0 +1,13 @@
+{
+  "name": "memorias-familiares",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "vercel dev"
+  },
+  "dependencies": {
+    "mongodb": "^6.3.0"
+  },
+  "devDependencies": {
+    "dotenv": "^16.0.0"
+  }
+}
