@@ -213,7 +213,7 @@
         <header class="bk-hdr" style="position:relative">
             <div class="bk-hdr-t">Memorias de Familia</div>
             <nav class="bk-hdr-nav">
-                <button class="nb" onclick="togIdx()" title="Indice"><i class="fas fa-list"></i></button>
+                <button class="nb" id="btnIdx" onclick="togIdx()" title="Indice"><i class="fas fa-list"></i></button>
                 <button class="nb" onclick="togDP()" title="Datos"><i class="fas fa-database"></i></button>
                 <button class="nb" onclick="openModal()" title="Nueva memoria"><i class="fas fa-plus"></i></button>
             </nav>
@@ -339,7 +339,7 @@
 
     function updateModeBadge(){
         var badge=document.getElementById('modeBadge');
-        if(isVercel){badge.className='mode-badge vercel';badge.textContent='Modo lectura — MongoDB';}
+        if(isVercel){badge.className='mode-badge vercel';badge.textContent='Modo lectura — MongoDB';var bi=document.getElementById('btnIdx');if(bi)bi.style.display='none';}
         else{badge.className='mode-badge local';badge.textContent='Modo edicion — local';}
     }
 
