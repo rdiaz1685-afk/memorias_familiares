@@ -147,6 +147,13 @@
         .back-btn{display:inline-flex;align-items:center;gap:.5rem;background:0;border:1px solid rgba(196,162,101,.4);color:var(--ink-light);padding:.5rem 1.2rem;cursor:pointer;font-size:.85rem;margin-bottom:2rem;transition:all .3s;font-family:'Playfair Display',serif}
         .back-btn:hover{border-color:var(--gold);color:var(--ink);background:rgba(196,162,101,.08)}
 
+        /* Reproductor de audio */
+        .mem-audio{max-width:560px;margin:0 auto 2rem;background:rgba(196,162,101,.08);border:1px solid rgba(196,162,101,.25);padding:1rem 1.2rem;display:flex;align-items:center;gap:1rem}
+        .mem-audio i{color:var(--gold);font-size:1.2rem;flex-shrink:0}
+        .mem-audio audio{flex:1;height:36px;outline:none}
+        .mem-audio audio::-webkit-media-controls-panel{background:rgba(196,162,101,.1)}
+        .mem-audio-lbl{font-size:.78rem;color:var(--ink-faded);font-style:italic;white-space:nowrap}
+
         /* Panel de datos */
         .dp{display:none;background:var(--parchment);border:1px solid rgba(196,162,101,.3);padding:2rem;margin-bottom:3rem;box-shadow:0 4px 20px var(--shadow)}
         .dp.open{display:block;animation:fadeBI .6s ease}
@@ -482,6 +489,7 @@
                 }
             }
         });
+        if(m.audioSrc)h+='<div class="mem-audio"><i class="fas fa-headphones"></i><audio controls preload="none" src="'+m.audioSrc+'"></audio><span class="mem-audio-lbl">Narración</span></div>';
         h+='<div class="sd" aria-hidden="true"><i class="fas fa-diamond"></i></div>';
         if(m.footer)h+='<div class="mfn">'+m.footer+'</div>';
         h+='<div class="pn">'+num+'</div></article>';
